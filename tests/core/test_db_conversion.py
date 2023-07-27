@@ -16,6 +16,7 @@ from chia.simulator.block_tools import test_constants
 from chia.types.blockchain_format.sized_bytes import bytes32
 from chia.util.db_wrapper import DBWrapper2
 from chia.util.ints import uint64
+from tests.conftest import Mode
 from tests.util.temp_file import TempFile
 
 
@@ -29,7 +30,10 @@ def rand_bytes(num) -> bytes:
 class TestDbUpgrade:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("with_hints", [True, False])
-    async def test_blocks(self, default_1000_blocks, with_hints: bool):
+    async def test_blocks(self, default_1000_blocks, with_hints: bool, consensus_mode: Mode):
+        if consensus_mode != Mode.PLAIN:
+            pytest.skip("test does not depend on consesus rules")
+
         blocks = default_1000_blocks
 
         hints: List[Tuple[bytes32, bytes]] = []

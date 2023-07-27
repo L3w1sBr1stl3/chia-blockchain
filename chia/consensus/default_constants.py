@@ -59,6 +59,8 @@ default_kwargs = {
     "SOFT_FORK2_HEIGHT": 3886635,
     # October 23, 2023
     "SOFT_FORK3_HEIGHT": 4410000,
+    # December 4, 2023
+    "SOFT_FORK4_HEIGHT": 4603536,
     # June 2024
     "HARD_FORK_HEIGHT": 5496000,
     # June 2027

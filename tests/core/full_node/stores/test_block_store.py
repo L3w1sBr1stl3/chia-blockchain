@@ -371,7 +371,7 @@ async def test_get_block_bytes_in_range(tmp_dir: Path, bt: BlockTools, db_versio
 
 
 @pytest.mark.asyncio
-async def test_get_plot_filer_info(
+async def test_get_plot_filter_info(
     default_400_blocks: List[FullBlock], tmp_dir: Path, db_version: int, bt: BlockTools
 ) -> None:
     async with DBConnection(db_version) as db_wrapper, DBConnection(db_version) as db_wrapper_2:
