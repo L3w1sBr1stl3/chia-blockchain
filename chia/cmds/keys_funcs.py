@@ -285,9 +285,9 @@ def sign(message: str, private_key: PrivateKey, hd_path: str, as_bytes: bool, js
 
 def verify(message: str, public_key: str, signature: str, as_bytes: bool) -> None:
     data = bytes.fromhex(message) if as_bytes else bytes(message, "utf-8")
-    public_key = G1Element.from_bytes(bytes.fromhex(public_key))
-    signature = G2Element.from_bytes(bytes.fromhex(signature))
-    print(AugSchemeMPL.verify(public_key, data, signature))
+    pk: G1Element = G1Element.from_bytes(bytes.fromhex(public_key))
+    sig: G2Element = G2Element.from_bytes(bytes.fromhex(signature))
+    print(AugSchemeMPL.verify(pk, data, sig))
 
 
 def as_bytes_from_signing_mode(signing_mode_str: str) -> bool:
