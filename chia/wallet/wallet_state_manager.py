@@ -49,6 +49,7 @@ from chia.util.path import path_from_root
 from chia.wallet.cat_wallet.cat_constants import DEFAULT_CATS
 from chia.wallet.cat_wallet.cat_utils import CAT_MOD, CAT_MOD_HASH, construct_cat_puzzle, match_cat_puzzle
 from chia.wallet.cat_wallet.cat_wallet import CATWallet
+from chia.wallet.conditions import Condition
 from chia.wallet.db_wallet.db_wallet_puzzles import MIRROR_PUZZLE_HASH
 from chia.wallet.derivation_record import DerivationRecord
 from chia.wallet.derive_keys import (
@@ -731,7 +732,9 @@ class WalletStateManager:
         if len(clawback_coins) > 0:
             await self.spend_clawback_coins(clawback_coins, tx_fee)
 
-    async def spend_clawback_coins(self, clawback_coins: Dict[Coin, ClawbackMetadata], fee: uint64) -> List[bytes32]:
+    async def spend_clawback_coins(
+        self, clawback_coins: Dict[Coin, ClawbackMetadata], fee: uint64, extra_conditions: List[Condition] = []
+    ) -> List[bytes32]:
         assert len(clawback_coins) > 0
         coin_spends: List[CoinSpend] = []
         message: bytes32 = std_hash(b"".join([c.name() for c in clawback_coins.keys()]))
@@ -773,6 +776,7 @@ class WalletStateManager:
                         )
                     ],
                     coin_announcements=None if len(coin_spends) > 0 or fee == 0 else {message},
+                    conditions=extra_conditions,
                 )
                 coin_spend: CoinSpend = generate_clawback_spend_bundle(coin, metadata, inner_puzzle, inner_solution)
                 coin_spends.append(coin_spend)
