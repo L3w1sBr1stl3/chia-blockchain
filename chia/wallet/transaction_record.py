@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Generic, List, Optional, Tuple, TypeVar
+from typing import Dict, Generic, List, Optional, Tuple, Type, TypeVar
 
 from chia.consensus.coinbase import farmer_parent_id, pool_parent_id
 from chia.types.blockchain_format.coin import Coin
@@ -15,6 +15,7 @@ from chia.util.streamable import Streamable, streamable
 from chia.wallet.util.transaction_type import TransactionType
 
 T = TypeVar("T")
+_T_TransactionRecord = TypeVar("_T_TransactionRecord", bound="TransactionRecordOld")
 
 minimum_send_attempts = 6
 
@@ -27,7 +28,7 @@ class ItemAndTransactionRecords(Generic[T]):
 
 @streamable
 @dataclass(frozen=True)
-class TransactionRecord(Streamable):
+class TransactionRecordOld(Streamable):
     """
     Used for storing transaction data and status in wallets.
     """
@@ -81,7 +82,7 @@ class TransactionRecord(Streamable):
         return {coin_id: ms for coin_id, ms in self.memos}
 
     @classmethod
-    def from_json_dict_convenience(cls, modified_tx_input: Dict):
+    def from_json_dict_convenience(cls: Type[_T_TransactionRecord], modified_tx_input: Dict) -> _T_TransactionRecord:
         modified_tx = modified_tx_input.copy()
         if "to_address" in modified_tx:
             modified_tx["to_puzzle_hash"] = decode_puzzle_hash(modified_tx["to_address"]).hex()
@@ -124,3 +125,9 @@ class TransactionRecord(Streamable):
             # we tried to push it to mempool and got a fee error so it's a temporary error
             return True
         return False
+
+
+@streamable
+@dataclass(frozen=True)
+class TransactionRecord(TransactionRecordOld):
+    expiration: Optional[uint64] = None
