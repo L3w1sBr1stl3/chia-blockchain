@@ -338,6 +338,7 @@ class NFTWallet:
         fee: uint64 = uint64(0),
         push_tx: bool = True,
         reuse_puzhash: Optional[bool] = None,
+        extra_conditions: List[Condition] = [],
     ) -> Optional[SpendBundle]:
         """
         This must be called under the wallet state manager lock
@@ -400,6 +401,7 @@ class NFTWallet:
             False,
             announcement_set,
             origin_id=origin.name(),
+            extra_conditions=extra_conditions,
         )
         genesis_launcher_solution = Program.to([eve_fullpuz_hash, amount, []])
 
@@ -491,6 +493,7 @@ class NFTWallet:
         uri: str,
         fee: uint64 = uint64(0),
         reuse_puzhash: Optional[bool] = None,
+        extra_conditions: List[Condition] = [],
     ) -> Optional[SpendBundle]:
         uncurried_nft = UncurriedNFT.uncurry(*nft_coin_info.full_puzzle.uncurry())
         assert uncurried_nft is not None
@@ -508,6 +511,7 @@ class NFTWallet:
             {nft_coin_info.coin},
             metadata_update=(key, uri),
             reuse_puzhash=reuse_puzhash,
+            extra_conditions=extra_conditions,
         )
         for tx in txs:
             await self.wallet_state_manager.add_pending_transaction(tx)
@@ -619,6 +623,7 @@ class NFTWallet:
         puzzle_announcements_to_consume: Optional[Set[Announcement]] = None,
         ignore_max_send_amount: bool = False,
         reuse_puzhash: Optional[bool] = None,
+        extra_conditions: List[Condition] = [],
         **kwargs: Unpack[GSTOptionalArgs],
     ) -> List[TransactionRecord]:
         nft_coin: Optional[NFTCoinInfo] = kwargs.get("nft_coin", None)
@@ -652,6 +657,7 @@ class NFTWallet:
             trade_prices_list=trade_prices_list,
             metadata_update=metadata_update,
             reuse_puzhash=reuse_puzhash,
+            extra_conditions=extra_conditions,
         )
         spend_bundle = await self.sign(unsigned_spend_bundle)
         spend_bundle = SpendBundle.aggregate([spend_bundle] + additional_bundles)
@@ -1102,6 +1108,7 @@ class NFTWallet:
         fee: uint64 = uint64(0),
         announcement_ids: List[bytes32] = [],
         reuse_puzhash: Optional[bool] = None,
+        extra_conditions: List[Condition] = [],
     ) -> List[TransactionRecord]:
         self.log.debug("Setting NFT DID with parameters: nft=%s did=%s", nft_list, did_id)
         did_inner_hash = b""
@@ -1122,6 +1129,7 @@ class NFTWallet:
             puzzle_hashes_to_sign = [unft.p2_puzzle.get_tree_hash()]
             if not first:
                 fee = uint64(0)
+                extra_conditions = []
             nft_tx_record.extend(
                 await self.generate_signed_transaction(
                     [uint64(nft_coin_info.coin.amount)],
@@ -1131,6 +1139,7 @@ class NFTWallet:
                     new_owner=did_id,
                     new_did_inner_hash=did_inner_hash,
                     reuse_puzhash=reuse_puzhash,
+                    extra_conditions=extra_conditions,
                 )
             )
             first = False
@@ -1153,6 +1162,7 @@ class NFTWallet:
         puzzle_hash: bytes32,
         fee: uint64 = uint64(0),
         reuse_puzhash: Optional[bool] = None,
+        extra_conditions: List[Condition] = [],
     ) -> List[TransactionRecord]:
         self.log.debug("Transfer NFTs %s to %s", nft_list, puzzle_hash.hex())
         nft_tx_record = []
@@ -1162,6 +1172,7 @@ class NFTWallet:
         for nft_coin_info in nft_list:
             if not first:
                 fee = uint64(0)
+                extra_conditions = []
             nft_tx_record.extend(
                 await self.generate_signed_transaction(
                     [uint64(nft_coin_info.coin.amount)],
@@ -1171,6 +1182,7 @@ class NFTWallet:
                     new_owner=b"",
                     new_did_inner_hash=b"",
                     reuse_puzhash=reuse_puzhash,
+                    extra_conditions=extra_conditions,
                 )
             )
             first = False
@@ -1192,6 +1204,7 @@ class NFTWallet:
         did_id: bytes,
         fee: uint64 = uint64(0),
         reuse_puzhash: Optional[bool] = None,
+        extra_conditions: List[Condition] = [],
     ) -> SpendBundle:
         self.log.debug("Setting NFT DID with parameters: nft=%s did=%s", nft_coin_info, did_id)
         unft = UncurriedNFT.uncurry(*nft_coin_info.full_puzzle.uncurry())
@@ -1213,6 +1226,7 @@ class NFTWallet:
             new_did_inner_hash=did_inner_hash,
             additional_bundles=additional_bundles,
             reuse_puzhash=reuse_puzhash,
+            extra_conditions=extra_conditions,
         )
         spend_bundle = SpendBundle.aggregate([x.spend_bundle for x in nft_tx_record if x.spend_bundle is not None])
         if spend_bundle:
